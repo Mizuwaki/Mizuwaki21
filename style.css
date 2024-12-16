@@ -1,0 +1,40 @@
+/* Please define your custom styles here */
+/* 画面周辺の余白とボーダーラインを削除 */
+:root {
+  --padding-internal: 0px;
+}
+.container.fullscreen{
+  border: none;
+  border-radius: 0;
+  width: 100%;
+  padding: 10px;
+}
+/* HTML PAGEの要素の幅を大きくする */
+:root {
+  --width-min-container: 440px;
+}
+.w-m{
+  width: auto;
+}
+/* フォントを調整 */
+:root {
+  --font-size: 16px;
+  --line-height: 1.6;
+}
+h1, h2, h3{
+  margin: 1.5em 0 0.3em 0;
+}
+p{
+  margin: 0 0 0.6em 0;
+}
+@media all and (max-width: 520px){
+  :root {
+  --width-min-container: auto;
+  --font-size: 15px;
+  }
+}
+.tategaki {
+  -ms-writing-mode: tb-rl;
+  writing-mode: vertical-rl;
+  height: 140px;
+}
