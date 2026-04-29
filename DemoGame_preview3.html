@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>援助要請ゲーム</title>
+
+    <script src="jspsych/dist/jspsych.js"></script>
+
+    <script src="jspsych/dist/plugin-html-button-response.js"></script>
+
+    <script src="jspsych/dist/plugin-survey-html-form.js"></script>
+
+    <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
+
+    <link rel="stylesheet" href="jspsych/dist/jspsych.css" />
+
+    <style>
+      :root {
+        --page-bg: radial-gradient(circle at top, #f7f1e4 0%, #edf3f6 42%, #dde7eb 100%);
+        --card-bg: rgba(255, 255, 255, 0.94);
+        --card-border: rgba(70, 87, 102, 0.12);
+        --text-main: #1f2933;
+        --text-muted: #52606d;
+        --heading: #14232f;
+        --accent: #2f6f61;
+        --accent-soft: #e3f0ec;
+        --surface: #f7f8fa;
+        --surface-strong: #edf4f7;
+        --shadow: 0 18px 45px rgba(49, 62, 73, 0.12);
+      }
+
+      html {
+        background: #edf3f6;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page-bg);
+      }
+
+      .jspsych-display-element {
+        font-family: "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic", sans-serif;
+        color: var(--text-main);
+        line-height: 1.85;
+      }
+
+      .jspsych-content-wrapper {
+        box-sizing: border-box;
+        padding: 40px 16px;
+      }
+
+      .jspsych-content {
+        width: min(880px, 100%);
+        margin: auto;
+        padding: 32px clamp(20px, 4vw, 48px);
+        text-align: left;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .screen-card {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .screen-eyebrow {
+        margin: 0;
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .screen-title {
+        margin: 0;
+        font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+        line-height: 1.35;
+        color: var(--heading);
+      }
+
+      .screen-body {
+        display: grid;
+        gap: 14px;
+      }
+
+      .screen-body p,
+      .screen-body ul {
+        margin: 0;
+      }
+
+      .info-block {
+        display: grid;
+        gap: 8px;
+        padding: 16px 18px;
+        background: var(--surface);
+        border: 1px solid rgba(70, 87, 102, 0.12);
+        border-radius: 16px;
+      }
+
+      .info-block strong {
+        color: #173548;
+      }
+
+      .rule-list {
+        padding-left: 1.2em;
+        display: grid;
+        gap: 8px;
+      }
+
+      .consent-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 18px;
+        background: var(--accent-soft);
+        border: 1px solid rgba(47, 111, 97, 0.18);
+        border-radius: 16px;
+        font-weight: 600;
+      }
+
+      .consent-check input[type="checkbox"] {
+        margin-top: 0.35em;
+        transform: scale(1.15);
+      }
+
+      .cost-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid rgba(47, 67, 84, 0.12);
+        border-radius: 18px;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .cost-table th,
+      .cost-table td {
+        padding: 14px 12px;
+        border-right: 1px solid rgba(47, 67, 84, 0.1);
+        border-bottom: 1px solid rgba(47, 67, 84, 0.1);
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      .cost-table tr:last-child th,
+      .cost-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .cost-table th:last-child,
+      .cost-table td:last-child {
+        border-right: none;
+      }
+
+      .cost-table thead th {
+        background: var(--surface-strong);
+        color: #173548;
+        font-weight: 700;
+      }
+
+      .cost-table tbody th {
+        background: #f8fafb;
+        font-weight: 700;
+      }
+
+      .cost-positive {
+        color: #9b2c2c;
+        font-weight: 700;
+      }
+
+      .screen-question {
+        padding: 18px 20px;
+        background: linear-gradient(135deg, #edf4f7, #f8f3e7);
+        border: 1px solid rgba(47, 67, 84, 0.12);
+        border-radius: 18px;
+        font-weight: 700;
+        color: #173548;
+      }
+
+      .result-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: var(--surface);
+      }
+
+      .result-row strong {
+        color: #173548;
+      }
+
+      .jspsych-btn-group-flex {
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 28px;
+      }
+
+      .jspsych-btn {
+        min-width: 10rem;
+        margin: 0;
+        padding: 12px 20px;
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic", sans-serif;
+        color: #fff;
+        background: linear-gradient(135deg, #2f6f61, #245246);
+        border: none;
+        border-radius: 999px;
+        box-shadow: 0 10px 24px rgba(36, 82, 70, 0.2);
+      }
+
+      @media (hover: hover) {
+        .jspsych-btn:hover {
+          background: linear-gradient(135deg, #295f54, #1f463c);
+        }
+      }
+
+      .jspsych-btn:active {
+        background: #1f463c;
+      }
+
+      .jspsych-btn:disabled {
+        background: #9aa5b1;
+        color: #eef2f6;
+      }
+
+      @media (max-width: 640px) {
+        .jspsych-content-wrapper {
+          padding: 20px 10px;
+        }
+
+        .jspsych-content {
+          padding: 22px 16px;
+          border-radius: 20px;
+        }
+
+        .cost-table {
+          display: block;
+          overflow-x: auto;
+        }
+
+        .result-row {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .jspsych-btn {
+          width: 100%;
+          min-width: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <script>
+      const DATAPIPE_EXPERIMENT_ID = "LvETucku4I3O";
+
+      const jsPsych = initJsPsych({
+        on_finish: () => {
+          prepareDataForExport();
+        },
+      });
+
+      const subject_id = jsPsych.randomization.randomID(10);
+      const participantID = subject_id;
+      const exportFilename = `${subject_id}.csv`;
+      const conditionCodeMap = { nocost: 1, normal: 2, burden: 3 };
+      const datapipeExportColumns = [
+        "ID",
+        "trial_type",
+        "trial_index",
+        "time_elapsed",
+        "rt",
+        "condition",
+        "cost",
+        "trialNum",
+        "isPractice",
+        "theme",
+        "variant",
+        "vignette",
+        "choice",
+        "choice_label",
+        "success",
+        "success_prev",
+        "self_cost",
+        "other_cost",
+        "screenType",
+      ];
+      let exportPrepared = false;
+      let uploadResult = null;
+
+      function prepareDataForExport() {
+        if (exportPrepared) {
+          return;
+        }
+
+        const rows = jsPsych.data.get().values();
+        let previousDecision = null;
+
+        rows.forEach((row) => {
+          row.ID = participantID;
+
+          if (row.screenType !== "decision") {
+            row.cost = "";
+            row.choice = "";
+            row.choice_label = "";
+            row.success_prev = "";
+            row.vignette = "";
+            return;
+          }
+
+          row.cost = conditionCodeMap[row.condition] ?? "";
+          row.choice_label = row.choice === 1 ? "求める" : "求めない";
+          row.success_prev = previousDecision && previousDecision.choice === 1 ? previousDecision.success : "";
+          row.vignette = row.theme ? Number(row.theme) || "" : "";
+          previousDecision = row;
+        });
+
+        exportPrepared = true;
+      }
+
+      function saveExperimentData() {
+        prepareDataForExport();
+        const blob = new Blob([getDataPipeCSV()], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = exportFilename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function getDataPipeCSV() {
+        prepareDataForExport();
+        const escapeCSV = (value) => {
+          const text = value === null || value === undefined ? "" : String(value);
+          return `"${text.replace(/"/g, '""')}"`;
+        };
+
+        const decisionRows = jsPsych.data.get().filter({ screenType: "decision" }).values();
+        const lines = [
+          datapipeExportColumns.map(escapeCSV).join(","),
+          ...decisionRows.map((row) => datapipeExportColumns.map((column) => escapeCSV(row[column])).join(",")),
+        ];
+
+        return `${lines.join("\n")}\n`;
+      }
+
+      const save_data = {
+        type: jsPsychPipe,
+        action: "save",
+        experiment_id: DATAPIPE_EXPERIMENT_ID,
+        filename: exportFilename,
+        data_string: getDataPipeCSV,
+        wait_message: "<p>実験データを保存しています。この画面を閉じずにお待ちください。</p>",
+        data: { screenType: "datapipe_upload" },
+        on_finish: function (data) {
+          const result = data.result || {};
+          const message = result.message || result.error || "";
+          const errorCode = message === "The data are not valid according to the validation parameters set for this experiment."
+            ? "INVALID_DATA"
+            : "";
+
+          uploadResult = data.success
+            ? {
+                ok: true,
+                errorCode: "",
+                message: "DataPipeを経由してOSFへCSVデータを保存しました。",
+              }
+            : {
+                ok: false,
+                errorCode,
+                message: `${message || "DataPipeへの保存に失敗しました。"} バックアップとしてCSVファイルをこの端末に保存しました。`,
+              };
+
+          if (!uploadResult.ok) {
+            saveExperimentData();
+          }
+        },
+      };
+
+      let timeline = [];
+
+      function renderCard(title, body, eyebrow = "援助要請ゲーム") {
+        return `
+          <section class="screen-card">
+            <p class="screen-eyebrow">${eyebrow}</p>
+            <h1 class="screen-title">${title}</h1>
+            <div class="screen-body">
+              ${body}
+            </div>
+          </section>
+        `;
+      }
+
+      function formatCost(value) {
+        return Number(value) === 0 ? "0" : `-${value}`;
+      }
+
+      function renderPrompt(stimulus) {
+        return renderCard("状況を読んで選択してください", `
+          <div class="screen-question">
+            ${stimulus}
+          </div>
+        `, "試行");
+      }
+
+      function renderNotice(title, body, eyebrow = "案内") {
+        return renderCard(title, body, eyebrow);
+      }
+
+      function renderFeedback(d) {
+        const outcome = d.choice === 1
+          ? d.success
+            ? "援助は成功しました"
+            : "援助は失敗しました"
+          : "あなたはひとりで何とかしようとしました";
+
+        return renderNotice("今回の結果", `
+          <div class="result-grid">
+            <div class="result-row"><span>あなたの選択</span><strong>${d.choice === 1 ? "求めた" : "求めなかった"}</strong></div>
+            <div class="result-row"><span>結果</span><strong>${outcome}</strong></div>
+            <div class="result-row"><span>自分の体力変化</span><strong>${formatCost(d.self_cost)}</strong></div>
+            <div class="result-row"><span>相手の体力変化</span><strong>${formatCost(d.other_cost)}</strong></div>
+          </div>
+        `, "フィードバック");
+      }
+
+      const vignettes = [
+        {
+          label: "1",
+          patterns: {
+            A: "この1ヵ月ほど，気分が沈みがちで，何をするにも以前より気力が必要になっています。以前はよく音楽を聴いていましたが，最近はあまり楽しめなくなりました。時間があっても，何となく過ごしてしまうことが増えています。",
+            B: "ここ最近，気分が晴れず，休日も外出する気になれません。以前は好きだった動画や映画にもあまり関心が持てず，ぼんやり過ごす時間が増えています。",
+            C: "この頃，何かを始めようとしてもやる気が続かず，途中でやめてしまうことが増えました。以前楽しんでいた趣味にも，気持ちが向かなくなっています。"
+          }
+        },
+        {
+          label: "2",
+          patterns: {
+            A: "最近，十分に休んでも疲れが取れず，体が重く感じる日が続いています。勉強や仕事に取りかかっても集中が続かず，思うように進みません。",
+            B: "この1ヵ月ほど，常にだるさを感じています。作業をしていてもすぐに気が散ってしまい，何度も中断することが増えました。",
+            C: "ここ最近，少し動いただけでも疲れてしまい，作業を始めるまでに時間がかかります。以前よりも効率が落ちていると感じています。"
+          }
+        },
+        {
+          label: "3",
+          patterns: {
+            A: "最近，なかなか寝つけず，夜中に目が覚めることが増えています。そのため，日中も眠気やだるさを感じやすくなっています。",
+            B: "ここ1ヵ月ほど，眠りが浅く，朝起きても疲れが残っています。生活リズムも乱れがちで，日中の活動に影響が出ています。",
+            C: "夜遅くまで眠れず，朝もすっきり起きられない日が続いています。睡眠不足のため，集中力が落ちていると感じます。"
+          }
+        },
+        {
+          label: "4",
+          patterns: {
+            A: "最近，過去の失敗を思い出しては，「自分はうまくできない」と考えてしまうことが増えています。小さなミスでも強く気にしてしまいます。",
+            B: "この頃，自分の欠点ばかりに目が向いてしまい，自信を持てなくなっています。周囲と比べて落ち込むことが多くなりました。",
+            C: "うまくいかなかった出来事を何度も思い返してしまい，自分を責める気持ちが続いています。前向きに考えることが難しくなっています。"
+          }
+        },
+        {
+          label: "5",
+          patterns: {
+            A: "最近，ちょっとしたことで気分が乱れやすくなり，些細な出来事にも強く反応してしまうことがあります。その後で，「なぜあんなに気にしてしまったのだろう」と後悔することが増えています。",
+            B: "ここ1ヵ月ほど，気持ちが不安定になりやすく，周囲の言動に過敏に反応してしまうことがあります。以前よりイライラしやすくなり，人と接することに疲れを感じるようになっています。",
+            C: "最近，感情のコントロールが難しくなり，小さなことで強く落ち込んだり，腹立たしく感じたりすることが増えました。そのため，人間関係にも影響が出ていると感じています。"
+          }
+        }
+      ];
+
+      function shuffleArray(array) {
+        return jsPsych.randomization.shuffle(array.slice());
+      }
+
+      const conditionOrder = shuffleArray(["nocost", "normal", "burden"]);
+      const themePatternAssignments = {};
+      vignettes.forEach((item) => {
+        const patterns = shuffleArray(["A", "B", "C"]);
+        themePatternAssignments[item.label] = {
+          nocost: patterns[0],
+          normal: patterns[1],
+          burden: patterns[2],
+        };
+      });
+
+      /* =========================
+         インフォームドコンセント
+      ========================= */
+      timeline.push({
+        type: jsPsychSurveyHtmlForm,
+        html: renderCard("実験参加への同意", `
+          <p>ご参加ありがとうございます。</p>
+          <p>本実験・調査の実施者は大阪教育大学大学院の水脇音です。実施責任者は大阪教育大学大学の山口正寛です。本実験・調査への参加はあなたの任意によるものです。</p>
+          <div class="info-block">
+            <strong>本実験・調査の目的</strong>
+            <span>援助要請について調べることが本実験・調査の目的です。</span>
+          </div>
+          <div class="info-block">
+            <strong>本実験・調査の手続き</strong>
+            <span>本実験・調査では援助要請に関するゲームとアンケートにお答えいただきます。この実験・調査の所要時間は10〜20分程度です。</span>
+          </div>
+          <div class="info-block">
+            <strong>潜在的なリスク・苦痛など</strong>
+            <span>実験による多少の疲労は除き，潜在的なリスクや苦痛はありません。また，いつ，いかなる理由でも，自由に実験を中止していただけます。</span>
+          </div>
+          <div class="info-block">
+            <strong>参加による利益</strong>
+            <span>あなたが本実験・調査に参加することで学習，認知，感情についての研究の発展に繋がります。</span>
+          </div>
+          <div class="info-block">
+            <strong>匿名性の確保</strong>
+            <span>本実験・調査によって得られた情報は法律による開示請求を除き，匿名性が維持されます。収集されたデータは匿名化した上で統計的処理を行い，論文や学会発表で公表されます。二次分析などを目的として匿名化した個人データを公表する場合がありますが，個人が特定される形で公表されることはありません。</span>
+          </div>
+          <div class="info-block">
+            <strong>参加と中止</strong>
+            <span>あなたは本実験・調査への参加もしくは不参加を自由に選択できます。また，参加した場合でも，いつでも，どのような理由でも，途中で実験・調査を中止することができます。途中で中止したくなった場合は，ウィンドウを閉じてください。</span>
+          </div>
+          <div class="info-block">
+            <strong>問い合わせ先</strong>
+            <span>本実験・調査に対して質問がある場合は，実施者または実施責任者にお問い合わせください（j259610@osaka-kyoiku.ac.jp）。</span>
+          </div>
+          <p>実験・調査への参加に同意いただけますか。同意いただける方はチェックをお願いします。同意いただけない方は，ウィンドウを閉じてください。</p>
+          <label class="consent-check"><input type="checkbox" name="consent" required><span>上記の説明をよく読み，理解した上で，実験・調査への参加に同意します。</span></label>
+        `, "インフォームドコンセント"),
+        button_label: "つぎへ",
+      });
+
+      /* =========================
+         ゲーム説明
+      ========================= */
+      timeline.push({
+        type: jsPsychSurveyHtmlForm,
+        html: renderCard("ゲームの説明", `
+          <p>援助要請ゲームは，本研究のために作成したオリジナルのゲームです。</p>
+          <div class="info-block">
+            <strong>基本的なルール</strong>
+            <ul class="rule-list">
+              <li>学生生活で起きうる状況に対して，「このような状況の時に誰かに助けを求めますか？」と尋ねます。</li>
+              <li>あなたは，その問いに対して助けを「求める」か「求めないか」を選択してください。</li>
+              <li>あなたの選んだ選択肢によって，助けを求めた相手とあなたの次の行動が決まります。</li>
+            </ul>
+          </div>
+          <div class="info-block">
+            <strong>「求める」を選択した場合</strong>
+            <ul class="rule-list">
+              <li>一定の確率で援助要請が成功し，助けを求めた相手とともに問題を解決しようとします。</li>
+              <li>一定の確率で援助要請が失敗し，相手に助けを求めたものの要請が受け入れられず，自分ひとりで問題を解決しようとします。</li>
+            </ul>
+          </div>
+          <div class="info-block">
+            <strong>「求めない」を選択した場合</strong>
+            <span>自分ひとりで問題を解決しようとします。</span>
+          </div>
+          <p>条件によって，問題を解決するために必要なコストが変化します。条件ごとに説明と練習を1試行行い，その後に本試行を進めます。</p>
+          <p>このゲームは 6試行（うち1試行は練習）×3セットの18試行です。</p>
+          <label class="consent-check"><input type="checkbox" name="game_understood" required><span>上記の説明を読んでゲームの内容を理解できました。</span></label>
+        `, "ゲーム説明"),
+        button_label: "つぎへ",
+      });
+
+      /* =========================
+         援助要請 試行関数
+      ========================= */
+      function helpTrial(condition, trialNum, isPractice = false, stimulus = "誰かに助けを求めますか？", theme = null, variant = null) {
+        let trial = {
+          type: jsPsychHtmlButtonResponse,
+          stimulus: renderPrompt(stimulus),
+          choices: ["求める", "求めない"],
+          data: { condition, trialNum, isPractice, theme, variant, screenType: "decision" },
+          on_finish: function (d) {
+            d.choice = d.response === 0 ? 1 : 0;
+            d.choice_label = d.choice === 1 ? "求める" : "求めない";
+            if (d.response === 0) {
+              d.success = Math.random() < 0.5 ? 1 : 0;
+            } else {
+              d.success = "";
+            }
+            d.self_cost = 0;
+            d.other_cost = 0;
+
+            if (d.response === 0) {
+              if (condition === "normal") {
+                d.success ? ((d.self_cost = 5), (d.other_cost = 5)) : (d.self_cost = 10);
+              }
+              if (condition === "burden") {
+                d.success ? ((d.self_cost = 5), (d.other_cost = 10)) : (d.self_cost = 10);
+              }
+            } else {
+              if (condition !== "nocost") d.self_cost = 10;
+            }
+          }
+        };
+        
+
+        let feedback = {
+          type: jsPsychHtmlButtonResponse,
+          data: { condition, trialNum, isPractice, theme, variant, screenType: "feedback" },
+          stimulus: function () {
+            let d = jsPsych.data.get().last(1).values()[0];
+            return renderFeedback(d);
+          },
+          choices: ["つぎへ"],
+        };
+
+        return [trial, feedback];
+      }
+
+      /* =========================
+         条件1〜3
+      ========================= */
+      conditionOrder.forEach((cond) => {
+        if (cond === "nocost") {
+          timeline.push({
+            type: jsPsychSurveyHtmlForm,
+            html: renderCard("コストなし条件", `
+              <p>あなたが今から取り組むのはコストなし条件です。</p>
+              <p>問題解決にコストはかかりません。</p>
+              <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th colspan="2">相手</th>
+                  </tr>
+                  <tr>
+                    <th></th>
+                    <th>要請を受け入れる</th>
+                    <th>要請を受け入れない</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>助けを求める</th>
+                    <td>援助要請成功</td>
+                    <td>援助要請失敗</td>
+                  </tr>
+                  <tr>
+                    <th>助けを求めない</th>
+                    <td colspan="2">1人で解決</td>
+                  </tr>
+                </tbody>
+              </table>
+              <label class="consent-check"><input type="checkbox" name="nocost_understood" required><span>上記の説明を読んでルールを理解できました。</span></label>
+            `, "条件説明"),
+            button_label: "つぎへ",
+          });
+        }
+        if (cond === "normal") {
+          timeline.push({
+            type: jsPsychSurveyHtmlForm,
+            html: renderCard("コストあり条件", `
+              <p>あなたが今から取り組むのはコストあり条件です。</p>
+              <div class="info-block">
+                <span>援助要請が成功すると，自分に <span class="cost-positive">-5</span>，相手に <span class="cost-positive">-5</span> のコストがかかります。</span>
+                <span>援助要請に失敗したり，助けを求めなかったりすると，自分に <span class="cost-positive">-10</span> のコストがかかります。</span>
+              </div>
+              <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th colspan="2">相手</th>
+                  </tr>
+                  <tr>
+                    <th></th>
+                    <th>要請を受け入れる</th>
+                    <th>要請を受け入れない</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>助けを求める</th>
+                    <td><span class="cost-positive">援助要請成功</span><br>自分: -5<br>相手: -5</td>
+                    <td><span class="cost-positive">援助要請失敗</span><br>自分: -10<br>相手: 0</td>
+                  </tr>
+                  <tr>
+                    <th>助けを求めない</th>
+                    <td colspan="2"><span class="cost-positive">1人で解決</span><br>自分: -10<br>相手: 0</td>
+                  </tr>
+                </tbody>
+              </table>
+              <label class="consent-check"><input type="checkbox" name="normal_understood" required><span>上記の説明を読んでルールを理解できました。</span></label>
+            `, "条件説明"),
+            button_label: "つぎへ",
+          });
+        }
+        if (cond === "burden") {
+          timeline.push({
+            type: jsPsychSurveyHtmlForm,
+            html: renderCard("コスト増加条件", `
+              <p>あなたが今から取り組むのはコスト増加条件です。</p>
+              <div class="info-block">
+                <span>援助要請が成功すると，自分に <span class="cost-positive">-5</span>，相手に <span class="cost-positive">-10</span> のコストがかかります。</span>
+                <span>援助要請に失敗したり，助けを求めなかったりすると，自分に <span class="cost-positive">-10</span> のコストがかかります。</span>
+              </div>
+              <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th colspan="2">相手</th>
+                  </tr>
+                  <tr>
+                    <th></th>
+                    <th>要請を受け入れる</th>
+                    <th>要請を受け入れない</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>助けを求める</th>
+                    <td><span class="cost-positive">援助要請成功</span><br>自分: -5<br>相手: -10</td>
+                    <td><span class="cost-positive">援助要請失敗</span><br>自分: -10<br>相手: 0</td>
+                  </tr>
+                  <tr>
+                    <th>助けを求めない</th>
+                    <td colspan="2"><span class="cost-positive">1人で解決</span><br>自分: -10<br>相手: 0</td>
+                  </tr>
+                </tbody>
+              </table>
+              <label class="consent-check"><input type="checkbox" name="burden_understood" required><span>上記の説明を読んでルールを理解できました。</span></label>
+            `, "条件説明"),
+            button_label: "つぎへ",
+          });
+        }
+        // 練習試行
+        timeline.push(...helpTrial(cond, 0, true, "あなたは今道に迷っています。<br>誰かに助けを求めますか？"));
+        // 次は本試行です
+        timeline.push({
+          type: jsPsychHtmlButtonResponse,
+          stimulus: renderNotice("本試行を始めます", "<p>練習はここまでです。続けて本試行に進みます。</p>"),
+          choices: ["つぎへ"],
+        });
+
+        const vignetteOrder = shuffleArray(vignettes);
+        vignetteOrder.forEach((item, index) => {
+          const variant = themePatternAssignments[item.label][cond];
+          const stimulus = `<p>${item.patterns[variant]}</p><p>あなたは助けを求めますか？</p>`;
+          timeline.push(...helpTrial(cond, index + 1, false, stimulus, item.label, variant));
+        });
+
+        timeline.push({
+          type: jsPsychHtmlButtonResponse,
+          stimulus: () => {
+            let d = jsPsych.data.get().filter({ condition: cond, isPractice: false, screenType: "decision" });
+            return renderNotice("この5試行の集計", `
+              <div class="result-grid">
+                <div class="result-row"><span>あなたの体力変化</span><strong>${formatCost(d.select("self_cost").sum())}</strong></div>
+                <div class="result-row"><span>相手の体力変化</span><strong>${formatCost(d.select("other_cost").sum())}</strong></div>
+              </div>
+            `, "セット結果");
+          },
+          choices: ["つぎへ"],
+        });
+      });
+
+      /* ================= タイムライン ================= */
+
+      /* ================= 自動CSV保存 & 終了画面 ================= */
+
+      timeline.push(save_data);
+
+      timeline.push({
+        type: jsPsychHtmlButtonResponse,
+        stimulus: function () {
+          const title = uploadResult && uploadResult.ok ? "保存が完了しました" : "保存結果を確認してください";
+          const detail = uploadResult && uploadResult.ok
+            ? "<p>データはDataPipe経由でOSFに保存されました。OSF側のデータコンポーネントにCSVファイルが作成されます。</p>"
+            : uploadResult && uploadResult.errorCode === "INVALID_DATA"
+              ? `<p>Experiment ID ${DATAPIPE_EXPERIMENT_ID} のDataPipe設定で，現在の送信データがバリデーションに通っていません。DataPipeダッシュボードで Allow CSV / Allow JSON と Required Fields を確認してください。</p>`
+              : "<p>OSFへの自動保存に失敗したため，バックアップのCSVをこの端末へ保存しました。DataPipeの実験設定とOSF連携状態を確認してください。</p>";
+
+          return renderNotice(title, `<p>${uploadResult ? uploadResult.message : "保存結果を取得できませんでした。"}</p>${detail}`, "終了画面");
+        },
+        choices: ["終了する"],
+      });
+
+      jsPsych.run(timeline);
+    </script>
+  </body>
+</html>
